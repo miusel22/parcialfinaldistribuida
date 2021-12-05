@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:final_distribuida/models/encuesta.dart';
 import 'package:final_distribuida/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
@@ -14,6 +16,7 @@ import 'package:final_distribuida/models/token.dart';
 import 'package:final_distribuida/screens/home_screen.dart';
 import 'package:final_distribuida/helpers/api_helper.dart';
 import 'package:final_distribuida/models/response.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   final Token token;
@@ -42,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool theWorstShowError = false;
   bool remarksShowError = false;
   bool _showLoader = false;
+  Object dataEncuesta = {};
   TextEditingController emailController = TextEditingController();
   TextEditingController qualificationController = TextEditingController();
   TextEditingController theBestController = TextEditingController();
@@ -49,7 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _getEncuesta();
-    _loadFieldValues();
   }
 
   @override
@@ -160,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
           fillColor: Colors.white,
           filled: true,
           hintText: 'Comentarios',
-          labelText: 'Email',
+          labelText: 'Comentarios',
           errorText: remarksShowError ? remarksError : null,
           prefixIcon: Icon(Icons.ac_unit_rounded),
           suffixIcon: Icon(Icons.email),
@@ -176,20 +179,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _showQualification() {
     return Container(
       padding: EdgeInsets.all(10),
-      child: TextField(
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          fillColor: Colors.white,
-          filled: true,
-          hintText: 'Calificaaaa',
-          labelText: 'calificaaa',
-          errorText: qualificationShowError ? qualificationError : null,
-          prefixIcon: Icon(Icons.alternate_email),
-          suffixIcon: Icon(Icons.email),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      child: RatingBar.builder(
+        initialRating: 3,
+        minRating: 1,
+        direction: Axis.horizontal,
+        allowHalfRating: true,
+        itemCount: 5,
+        itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+        itemBuilder: (context, _) => Icon(
+          Icons.star,
+          color: Colors.amber,
         ),
-        onChanged: (value) {
-          qualification = 5;
+        onRatingUpdate: (rating) {
+          qualification = rating.toInt();
         },
       ),
     );
@@ -213,35 +215,35 @@ class _HomeScreenState extends State<HomeScreen> {
     if (qualification == 0) {
       isValid = false;
       qualificationShowError = true;
-      qualificationError = 'Debes de calificar';
+      qualificationError = 'Debes diligenciar este campo';
     } else {
       qualificationShowError = false;
     }
     if (theBest.isEmpty) {
       isValid = false;
       theBestShowError = true;
-      theBestError = 'Debes de calificar';
+      theBestError = 'Debes diligenciar este campo';
     } else {
       theBestShowError = false;
     }
     if (theWorst.isEmpty) {
       isValid = false;
       theWorstShowError = true;
-      theWorstError = 'Debes de calificar';
+      theWorstError = 'Debes diligenciar este campo';
     } else {
       theWorstShowError = false;
     }
     if (theWorst.isEmpty) {
       isValid = false;
       theWorstShowError = true;
-      theWorstError = 'Debes de calificar';
+      theWorstError = 'Debes diligenciar este campo';
     } else {
       theWorstShowError = false;
     }
     if (remarks.isEmpty) {
       isValid = false;
       remarksShowError = true;
-      remarksError = 'Debes de calificar';
+      remarksError = 'Debes diligenciar este campo';
     } else {
       remarksShowError = false;
     }
@@ -323,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return Color(0xFF120E43);
           }),
         ),
-        onPressed: () => _save(),
+        onPressed: () => _addEncuesta(),
       ),
     );
   }
@@ -338,7 +340,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _showLoader = false;
+      dataEncuesta = response.result.encuesta;
     });
+    print(dataEncuesta);
 
     if (!response.isSuccess) {
       await showAlertDialog(
@@ -359,6 +363,4 @@ class _HomeScreenState extends State<HomeScreen> {
 
     widget.token.user.id.isEmpty ? _addEncuesta() : _getEncuesta();
   }
-
-  void _loadFieldValues() {}
 }
